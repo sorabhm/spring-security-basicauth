@@ -15,12 +15,14 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
+	private static final String PATH_GEOLOCATION = "/geolocation";
+	private static final String ADMIN = "ADMIN";
 	private static String REALM = "TEST_REALM";
 	
 	@Autowired
 	public void configureGlobalSecurity(AuthenticationManagerBuilder manager) throws Exception {
 		manager.inMemoryAuthentication()
-				.withUser("bill").password("gates").roles("ADMIN")
+				.withUser("bill").password("gates").roles(ADMIN)
 				.and()
 				.withUser("john").password("smith").roles("USER");
 	}
@@ -32,9 +34,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	protected void configure(HttpSecurity http) throws Exception {
 		http.csrf().disable()
 			.authorizeRequests()
-			.antMatchers(HttpMethod.POST).hasRole("ADMIN")
-			.antMatchers("/geolocation")
-			.fullyAuthenticated()
+			.antMatchers(PATH_GEOLOCATION)
+			.authenticated()
+			.antMatchers(HttpMethod.POST, PATH_GEOLOCATION).hasRole(ADMIN)
+			.antMatchers(HttpMethod.DELETE, PATH_GEOLOCATION).hasRole(ADMIN)
 			.and().httpBasic().realmName(REALM).authenticationEntryPoint(getCustomAuthenticationEntryPoint())
 			.and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 	}
